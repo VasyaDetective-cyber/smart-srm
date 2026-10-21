@@ -6,12 +6,12 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 class CustomerBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     industry: Optional[str] = Field(None, max_length=100)
-    phone: str = Field(..., min_length=5, max_length=20)
-    email: EmailStr
+    phone: Optional[str] = Field(None, min_length=5, max_length=20)
+    email: Optional[EmailStr] = None
     address: Optional[str] = None
 
 class CustomerCreate(CustomerBase):
-    owner_id: UUID
+    pass
 
 class CustomerUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
