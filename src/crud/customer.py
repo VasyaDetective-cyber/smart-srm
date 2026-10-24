@@ -36,7 +36,7 @@ def update_customer(db: Session, customer_id: UUID, customer_update: CustomerUpd
     if not db_customer:
         return None
     
-    update_data = customer_update.model_dump(exclude_unset=True)
+    update_data = customer_update.model_dump(exclude_unset=True, exclude_none=True)
     for key, value in update_data.items():
         setattr(db_customer, key, value)
         

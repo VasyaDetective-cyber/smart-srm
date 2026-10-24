@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Text, DateTime, Enum, ForeignKey
+from sqlalchemy import Column, String, Text, DateTime, Date, Enum, ForeignKey, Integer, Numeric, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -19,18 +19,18 @@ class User(Base):
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
     customers = relationship("Customer", back_populates="owner")
-
+    deals = relationship("Deal", back_populates="owner")
 
 class Customer(Base):
     __tablename__ = "customers"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False, index=True)
     owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True)
-    industry = Column(String(100))
+    industry = Column(String(100), nullable=True)
     phone = Column(String(20), nullable=True)
     email = Column(String(255), nullable=True)
-    address = Column(Text)
+    address = Column(Text, nullable=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
@@ -41,29 +41,71 @@ class Customer(Base):
     deals = relationship("Deal", back_populates="customer")
     activities = relationship("Activity", back_populates="customer")
 
-
 class Contact(Base):
     __tablename__ = "contacts"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="RESTRICT"), nullable=False, index=True)
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
+    title = Column(String(100), nullable=True)
+    email = Column(String(255), nullable=True)
+    phone = Column(String(20), nullable=True)
     
-    customer = relationship("Customer", back_populates="contacts")
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
 
+    customer = relationship("Customer", back_populates="contacts")
 
 class Deal(Base):
     __tablename__ = "deals"
+    __table_args__ = (
+        CheckConstraint('amount > 0', name='check_amount_positive'),
+        CheckConstraint('probability >= 0 AND probability <= 100', name='check_probability_range'),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="RESTRICT"), nullable=False, index=True)
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True)
+    title = Column(String(255), nullable=False)
+    amount = Column(Numeric(15, 2), nullable=False)
+    probability = Column(Integer, nullable=False)
+    status = Column(
+        Enum('New', 'Qualified', 'Proposal', 'Negotiation', 'Won', 'Lost', name='deal_status'), 
+        nullable=False, 
+        default='New',
+        index=True
+    )
     
-    customer = relationship("Customer", back_populates="deals")
+    expected_close_date = Column(Date, nullable=False, index=True)
+    closed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
 
+    customer = relationship("Customer", back_populates="deals")
+    owner = relationship("User", back_populates="deals")
+    activities = relationship("Activity", back_populates="deal")
 
 class Activity(Base):
     __tablename__ = "activities"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="RESTRICT"), nullable=False, index=True)
+    deal_id = Column(UUID(as_uuid=True), ForeignKey("deals.id", ondelete="SET NULL"), nullable=True, index=True)
+    activity_type = Column(
+        Enum('Call', 'Meeting', 'Email', 'Note', name='activity_type_enum'), 
+        nullable=False,
+        index=True
+    )
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    scheduled_date = Column(DateTime(timezone=True), nullable=True)
     
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+
     customer = relationship("Customer", back_populates="activities")
+    deal = relationship("Deal", back_populates="activities")

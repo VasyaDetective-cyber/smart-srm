@@ -22,7 +22,7 @@ def create_customer(
 @router.get("/", response_model=List[CustomerResponse])
 def read_customers(
     skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=500),
+    limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -51,7 +51,7 @@ def update_customer(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if not customer_update.model_dump(exclude_unset=True):
+    if not customer_update.model_dump(exclude_unset=True, exclude_none=True):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No fields provided for update"
