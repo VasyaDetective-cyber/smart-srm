@@ -4,10 +4,11 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Smart CRM API"
     VERSION: str = "1.0.0"
     DATABASE_URL: str
-    
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
+        extra="ignore",
     )
 
 settings = Settings()
