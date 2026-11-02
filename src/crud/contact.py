@@ -27,7 +27,8 @@ def get_contacts(db: Session, user_id: UUID, is_admin: bool = False, customer_id
         query = query.filter(Customer.owner_id == user_id)
     if customer_id:
         query = query.filter(Contact.customer_id == customer_id)
-    return query.offset(skip).limit(limit).all()
+    
+    return query.order_by(Contact.created_at.desc(), Contact.id).offset(skip).limit(limit).all()
 
 def create_contact(db: Session, contact: ContactCreate, user_id: UUID, is_admin: bool = False):
     customer_query = db.query(Customer).filter(
@@ -40,10 +41,14 @@ def create_contact(db: Session, contact: ContactCreate, user_id: UUID, is_admin:
     if not customer:
         return None
 
-    if contact.email:
+    contact_data = contact.model_dump()
+    
+    if contact_data.get("email"):
+        contact_data["email"] = contact_data["email"].lower()
+        
         existing_email = db.query(Contact).filter(
             Contact.customer_id == contact.customer_id,
-            Contact.email == contact.email,
+            Contact.email == contact_data["email"],
             Contact.deleted_at.is_(None),
         ).first()
         if existing_email:
@@ -52,7 +57,7 @@ def create_contact(db: Session, contact: ContactCreate, user_id: UUID, is_admin:
                 detail="Contact with this email already exists for this customer"
             )
 
-    db_contact = Contact(**contact.model_dump())
+    db_contact = Contact(**contact_data)
     try:
         db.add(db_contact)
         db.commit()
@@ -61,7 +66,7 @@ def create_contact(db: Session, contact: ContactCreate, user_id: UUID, is_admin:
     except IntegrityError as e:
         db.rollback()
         error_msg = str(e.orig) if e.orig else str(e)
-        if "uq_contact_customer_email" in error_msg:
+        if "uq_contact_customer_email_active" in error_msg:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Contact with this email already exists for this customer"
@@ -89,6 +94,8 @@ def update_contact(db: Session, contact_id: UUID, contact_update: ContactUpdate,
             )
 
     if update_data.get("email"):
+        update_data["email"] = update_data["email"].lower()
+        
         existing_email = db.query(Contact).filter(
             Contact.customer_id == db_contact.customer_id,
             Contact.email == update_data["email"],
@@ -111,7 +118,7 @@ def update_contact(db: Session, contact_id: UUID, contact_update: ContactUpdate,
     except IntegrityError as e:
         db.rollback()
         error_msg = str(e.orig) if e.orig else str(e)
-        if "uq_contact_customer_email" in error_msg:
+        if "uq_contact_customer_email_active" in error_msg:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Contact with this email already exists for this customer"

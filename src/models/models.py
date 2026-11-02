@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Text, DateTime, Date, Enum, ForeignKey, Integer, Numeric, CheckConstraint, UniqueConstraint
+from sqlalchemy import Column, String, Text, DateTime, Date, Enum, ForeignKey, Integer, Numeric, CheckConstraint, Index, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -44,7 +44,13 @@ class Customer(Base):
 class Contact(Base):
     __tablename__ = "contacts"
     __table_args__ = (
-        UniqueConstraint("customer_id", "email", name="uq_contact_customer_email"),
+        Index(
+            "uq_contact_customer_email_active",
+            "customer_id",
+            "email",
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL")
+        ),
     )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
