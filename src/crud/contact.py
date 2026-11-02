@@ -58,11 +58,17 @@ def create_contact(db: Session, contact: ContactCreate, user_id: UUID, is_admin:
         db.commit()
         db.refresh(db_contact)
         return db_contact
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
+        error_msg = str(e.orig) if e.orig else str(e)
+        if "uq_contact_customer_email" in error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Contact with this email already exists for this customer"
+            )
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Contact with this email already exists for this customer"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Database integrity constraint violation."
         )
     except Exception:
         db.rollback()
@@ -102,11 +108,17 @@ def update_contact(db: Session, contact_id: UUID, contact_update: ContactUpdate,
         db.commit()
         db.refresh(db_contact)
         return db_contact
-    except IntegrityError:
+    except IntegrityError as e:
         db.rollback()
+        error_msg = str(e.orig) if e.orig else str(e)
+        if "uq_contact_customer_email" in error_msg:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Contact with this email already exists for this customer"
+            )
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Contact with this email already exists for this customer"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Database integrity constraint violation."
         )
     except Exception:
         db.rollback()
