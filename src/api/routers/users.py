@@ -94,6 +94,12 @@ def update_user(
         exclude_none=True
     )
 
+    if not update_data:
+        raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="No fields provided for update"
+    )
+
     try:
         return crud_user.update_user(
             db=db,
