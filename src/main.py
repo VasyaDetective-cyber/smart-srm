@@ -4,7 +4,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from fastapi import FastAPI
 from src.core.config import settings
-from src.api.routers import customer, contacts
+from src.api.routers import customer, contacts, auth, users
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -12,6 +12,8 @@ app = FastAPI(
 )
 app.include_router(customer.router)
 app.include_router(contacts.router)
+app.include_router(auth.router)
+app.include_router(users.router)
 
 @app.get("/")
 def read_root():
