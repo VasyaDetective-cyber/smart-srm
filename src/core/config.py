@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     DATABASE_URL: str
 
-    SECRET_KEY: str = "super-secret-key-change-in-production"
+    SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, gt=0)
 
     model_config = SettingsConfigDict(

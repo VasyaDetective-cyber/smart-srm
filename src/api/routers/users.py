@@ -89,6 +89,12 @@ def update_user(
             detail="Only Admin can change user roles"
         )
 
+    if user_in.role is not None and current_user.id == user_id and user_in.role != current_user.role:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You cannot change your own role"
+        )
+
     update_data = user_in.model_dump(
         exclude_unset=True,
         exclude_none=True
@@ -96,9 +102,9 @@ def update_user(
 
     if not update_data:
         raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail="No fields provided for update"
-    )
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No fields provided for update"
+        )
 
     try:
         return crud_user.update_user(
