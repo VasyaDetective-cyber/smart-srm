@@ -13,3 +13,4 @@ export async function login(email, password) {
   token.set(result.access_token); return result
 }
 export const getMe = () => request('/api/auth/me')
+export const apiRequest = request

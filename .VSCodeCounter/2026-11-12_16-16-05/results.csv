@@ -1,0 +1,31 @@
+"filename", "language", "Python", "Markdown", "YAML", "Ini", "pip requirements", "comment", "blank", "total"
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/README.md", "Markdown", 0, 1, 0, 0, 0, 0, 0, 1
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/REQUIREMENTS.md", "Markdown", 0, 287, 0, 0, 0, 0, 51, 338
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/alembic.ini", "Ini", 0, 0, 0, 123, 0, 0, 27, 150
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/alembic/env.py", "Python", 43, 0, 0, 0, 0, 0, 9, 52
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/alembic/versions/8efe6ef1b9e5_init_schema_with_partial_unique_index.py", "Python", 114, 0, 0, 0, 0, 14, 8, 136
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/alembic/versions/9e2d78c6f26a_add_deals_and_activities_tables.py", "Python", 11, 0, 0, 0, 0, 14, 8, 33
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/docker-compose.yml", "YAML", 0, 0, 14, 0, 0, 0, 1, 15
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/requirements.txt", "pip requirements", 0, 0, 0, 0, 29, 0, 0, 29
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/__init__.py", "Python", 0, 0, 0, 0, 0, 0, 1, 1
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/api/routers/auth.py", "Python", 88, 0, 0, 0, 0, 0, 20, 108
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/api/routers/contacts.py", "Python", 110, 0, 0, 0, 0, 0, 8, 118
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/api/routers/customer.py", "Python", 80, 0, 0, 0, 0, 0, 8, 88
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/api/routers/deal.py", "Python", 120, 0, 0, 0, 0, 0, 21, 141
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/api/routers/users.py", "Python", 129, 0, 0, 0, 0, 0, 25, 154
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/core/auth.py", "Python", 57, 0, 0, 0, 0, 0, 26, 83
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/core/config.py", "Python", 14, 0, 0, 0, 0, 0, 6, 20
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/crud/contact.py", "Python", 128, 0, 0, 0, 0, 0, 18, 146
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/crud/customer.py", "Python", 54, 0, 0, 0, 0, 0, 9, 63
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/crud/deal.py", "Python", 87, 0, 0, 0, 0, 0, 7, 94
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/crud/user.py", "Python", 51, 0, 0, 0, 0, 0, 19, 70
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/db/database.py", "Python", 13, 0, 0, 0, 0, 0, 4, 17
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/db/seed_admin.py", "Python", 39, 0, 0, 0, 0, 0, 5, 44
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/main.py", "Python", 17, 0, 0, 0, 0, 0, 3, 20
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/models/models.py", "Python", 101, 0, 0, 0, 0, 0, 20, 121
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/schemas/contact.py", "Python", 24, 0, 0, 0, 0, 0, 5, 29
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/schemas/customer.py", "Python", 24, 0, 0, 0, 0, 0, 5, 29
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/schemas/deal.py", "Python", 53, 0, 0, 0, 0, 0, 8, 61
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/src/schemas/user.py", "Python", 54, 0, 0, 0, 0, 0, 17, 71
+"/Users/vasyadetectivegmail.com/Desktop/Cursova/smart-srm/test_db.py", "Python", 10, 0, 0, 0, 0, 0, 5, 15
+"Total", "-", 1421, 288, 14, 123, 29, 28, 344, 2247

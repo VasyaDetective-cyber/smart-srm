@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from uuid import UUID
 from datetime import datetime, timezone
 
@@ -14,10 +15,13 @@ def get_customer(db: Session, customer_id: UUID, user_id: UUID, is_admin: bool =
         query = query.filter(Customer.owner_id == user_id)
     return query.first()
 
-def get_customers(db: Session, user_id: UUID, is_admin: bool = False, skip: int = 0, limit: int = 100):
+def get_customers(db: Session, user_id: UUID, is_admin: bool = False, skip: int = 0, limit: int = 100, search: str | None = None):
     query = db.query(Customer).filter(Customer.deleted_at.is_(None))
     if not is_admin:
         query = query.filter(Customer.owner_id == user_id)
+    if search and search.strip():
+        term = f"%{search.strip()}%"
+        query = query.filter(or_(Customer.name.ilike(term), Customer.industry.ilike(term), Customer.email.ilike(term), Customer.phone.ilike(term)))
     return query.offset(skip).limit(limit).all()
 
 def create_customer(db: Session, customer: CustomerCreate, owner_id: UUID):
@@ -36,7 +40,7 @@ def update_customer(db: Session, customer_id: UUID, customer_update: CustomerUpd
     if not db_customer:
         return None
     
-    update_data = customer_update.model_dump(exclude_unset=True, exclude_none=True)
+    update_data = customer_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_customer, key, value)
         
