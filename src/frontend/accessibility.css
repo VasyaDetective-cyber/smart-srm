@@ -1,0 +1,37 @@
+/* Readability pass: brighter supporting text without flattening the hierarchy. */
+.muted,
+.header-subtitle,
+.result-count,
+.pagination,
+.detail-card dt,
+.related-empty,
+.related-row small,
+.field-hint{color:#b0bee0}
+
+.brand-name small,
+.secure-line{color:#9eafd8}
+
+.company-link small,
+td small{color:#a8b8df}
+
+th{color:#a8b8df}
+
+input::placeholder{color:#b0bee0;opacity:1}
+
+.search-box input::placeholder{color:#b0bee0;opacity:1}
+
+.ui-icon{width:16px;height:16px;display:block}
+.search-box>span{display:grid;place-items:center;width:18px;flex:none}
+.search-box>span .ui-icon{width:18px;height:18px}
+
+th{vertical-align:bottom}
+.company-link small,td small{white-space:nowrap}
+
+input[type="date"]{color-scheme:dark}
+input[type="date"]::-webkit-calendar-picker-indicator{opacity:.9;cursor:pointer;filter:invert(78%) sepia(18%) saturate(700%) hue-rotate(185deg) brightness(96%)}
+
+.customer-actions.action-only{justify-content:flex-end}
+.row-actions button{display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border:1px solid #4862a7;border-radius:8px;background:#263a72;color:#c8d6ff;transition:background .2s,border-color .2s,transform .2s}
+.row-actions button:hover{background:#34518f;border-color:#6f96eb;text-decoration:none;transform:translateY(-1px)}
+.row-actions .danger-link{border-color:#81445e;background:#4d2d4d;color:#ffb1bd}
+.row-actions .danger-link:hover{border-color:#d7657d;background:#6b354f;color:#fff}
