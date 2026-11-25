@@ -1,141 +1,103 @@
-from datetime import datetime, timezone, date
+from datetime import date
+from decimal import Decimal
 from typing import List, Optional
 from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from sqlalchemy import select
-from sqlalchemy.exc import SQLAlchemyError
 
-from src.models.models import Deal, DealStatus, User, Customer
-from src.schemas.deal import DealCreate, DealUpdate
+from src.core.auth import get_current_user
+from src.crud import deal as crud_deal
+from src.db.database import get_db
+from src.models.models import DealStatus, User
+from src.schemas.deal import DealCreate, DealResponse, DealUpdate
 
-STAGE_ORDER = {
-    DealStatus.new: 1,
-    DealStatus.qualified: 2,
-    DealStatus.proposal: 3,
-    DealStatus.negotiation: 4,
-    DealStatus.won: 5,
-    DealStatus.lost: 5,
-}
 
-def get_deal(db: Session, deal_id: UUID, current_user: User) -> Optional[Deal]:
-    query = select(Deal).where(Deal.id == deal_id, Deal.deleted_at.is_(None))
-    if current_user.role != "Admin":
-        query = query.where(Deal.owner_id == current_user.id)
-    return db.execute(query).scalar_one_or_none()
+router = APIRouter(prefix="/deals", tags=["Deals"])
 
-def get_deals(
-    db: Session, 
-    current_user: User, 
-    skip: int = 0, 
-    limit: int = 20,
-    deal_status: Optional[DealStatus] = None,
+
+@router.post("/", response_model=DealResponse, status_code=status.HTTP_201_CREATED)
+def create_deal(
+    deal_in: DealCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return crud_deal.create_deal(db=db, deal_in=deal_in, current_user=current_user)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.get("/", response_model=List[DealResponse])
+def read_deals(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    search: Optional[str] = Query(None, max_length=100),
+    deal_status: Optional[DealStatus] = Query(None, alias="status"),
     customer_id: Optional[UUID] = None,
     owner_id: Optional[UUID] = None,
-    min_amount: Optional[float] = None,
-    max_amount: Optional[float] = None,
-    min_probability: Optional[int] = None,
-    max_probability: Optional[int] = None,
+    min_amount: Optional[Decimal] = Query(None, ge=Decimal("0")),
+    max_amount: Optional[Decimal] = Query(None, ge=Decimal("0")),
+    min_probability: Optional[int] = Query(None, ge=0, le=100),
+    max_probability: Optional[int] = Query(None, ge=0, le=100),
     date_from: Optional[date] = None,
-    date_to: Optional[date] = None
-) -> List[Deal]:
-    query = select(Deal).where(Deal.deleted_at.is_(None))
-    
-    if current_user.role != "Admin":
-        query = query.where(Deal.owner_id == current_user.id)
-    elif owner_id:
-        query = query.where(Deal.owner_id == owner_id)
-        
-    if deal_status:
-        query = query.where(Deal.status == deal_status)
-    if customer_id:
-        query = query.where(Deal.customer_id == customer_id)
-    if min_amount is not None:
-        query = query.where(Deal.amount >= min_amount)
-    if max_amount is not None:
-        query = query.where(Deal.amount <= max_amount)
-    if min_probability is not None:
-        query = query.where(Deal.probability >= min_probability)
-    if max_probability is not None:
-        query = query.where(Deal.probability <= max_probability)
-    if date_from is not None:
-        query = query.where(Deal.expected_close_date >= date_from)
-    if date_to is not None:
-        query = query.where(Deal.expected_close_date <= date_to)
-        
-    query = query.order_by(Deal.created_at.desc(), Deal.id).offset(skip).limit(limit)
-    return db.execute(query).scalars().all()
-
-def create_deal(db: Session, deal_in: DealCreate, current_user: User) -> Deal:
-    customer_query = select(Customer).where(Customer.id == deal_in.customer_id, Customer.deleted_at.is_(None))
-    if current_user.role != "Admin":
-        customer_query = customer_query.where(Customer.owner_id == current_user.id)
-    customer = db.execute(customer_query).scalar_one_or_none()
-    
-    if not customer:
-        raise ValueError("Customer not found or access denied")
-
-    db_deal = Deal(
-        title=deal_in.title,
-        amount=deal_in.amount,
-        probability=deal_in.probability,
-        expected_close_date=deal_in.expected_close_date,
-        status=deal_in.status or DealStatus.new,
-        customer_id=deal_in.customer_id,
-        owner_id=current_user.id
+    date_to: Optional[date] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return crud_deal.get_deals(
+        db=db,
+        current_user=current_user,
+        skip=skip,
+        limit=limit,
+        search=search,
+        deal_status=deal_status,
+        customer_id=customer_id,
+        owner_id=owner_id,
+        min_amount=min_amount,
+        max_amount=max_amount,
+        min_probability=min_probability,
+        max_probability=max_probability,
+        date_from=date_from,
+        date_to=date_to,
     )
-    
-    if db_deal.status in [DealStatus.won, DealStatus.lost]:
-        db_deal.closed_at = datetime.now(timezone.utc)
-        
-    try:
-        db.add(db_deal)
-        db.commit()
-        db.refresh(db_deal)
-        return db_deal
-    except SQLAlchemyError:
-        db.rollback()
-        raise
 
-def update_deal(db: Session, db_deal: Deal, deal_in: DealUpdate, current_user: User) -> Deal:
-    update_data = deal_in.model_dump(exclude_unset=True)
-    
-    if "owner_id" in update_data:
-        if current_user.role != "Admin":
-            raise ValueError("Only Admin can reassign deal owner")
-    
-    if "status" in update_data and update_data["status"] != db_deal.status:
-        if db_deal.status in [DealStatus.won, DealStatus.lost]:
-            raise ValueError("Cannot change status of a closed deal")
-            
-        new_status = update_data["status"]
-        current_rank = STAGE_ORDER.get(db_deal.status, 0)
-        new_rank = STAGE_ORDER.get(new_status, 0)
-        
-        if new_rank < current_rank:
-            raise ValueError(f"Cannot move deal status backward from {db_deal.status} to {new_status}")
-            
-        if new_status in [DealStatus.won, DealStatus.lost]:
-            db_deal.closed_at = datetime.now(timezone.utc)
-        else:
-            db_deal.closed_at = None
 
-    for field, value in update_data.items():
-        setattr(db_deal, field, value)
-        
-    try:
-        db.commit()
-        db.refresh(db_deal)
-        return db_deal
-    except SQLAlchemyError:
-        db.rollback()
-        raise
+@router.get("/{deal_id}", response_model=DealResponse)
+def read_deal(
+    deal_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    deal = crud_deal.get_deal(db=db, deal_id=deal_id, current_user=current_user)
+    if not deal:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Deal not found")
+    return deal
 
-def delete_deal(db: Session, db_deal: Deal) -> Deal:
-    db_deal.deleted_at = datetime.now(timezone.utc)
+
+@router.patch("/{deal_id}", response_model=DealResponse)
+def update_deal(
+    deal_id: UUID,
+    deal_in: DealUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    deal = crud_deal.get_deal(db=db, deal_id=deal_id, current_user=current_user)
+    if not deal:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Deal not found")
     try:
-        db.commit()
-        db.refresh(db_deal)
-        return db_deal
-    except SQLAlchemyError:
-        db.rollback()
-        raise
+        return crud_deal.update_deal(db=db, db_deal=deal, deal_in=deal_in, current_user=current_user)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.delete("/{deal_id}", response_model=DealResponse)
+def delete_deal(
+    deal_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    deal = crud_deal.get_deal(db=db, deal_id=deal_id, current_user=current_user)
+    if not deal:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Deal not found")
+    return crud_deal.delete_deal(db=db, db_deal=deal)

@@ -3,6 +3,7 @@ from uuid import UUID
 from datetime import datetime, timezone
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 
 from src.models.models import Contact, Customer
@@ -18,7 +19,7 @@ def get_contact(db: Session, contact_id: UUID, user_id: UUID, is_admin: bool = F
         query = query.filter(Customer.owner_id == user_id)
     return query.first()
 
-def get_contacts(db: Session, user_id: UUID, is_admin: bool = False, customer_id: Optional[UUID] = None, skip: int = 0, limit: int = 100):
+def get_contacts(db: Session, user_id: UUID, is_admin: bool = False, customer_id: Optional[UUID] = None, skip: int = 0, limit: int = 100, search: Optional[str] = None):
     query = db.query(Contact).join(Customer, Contact.customer_id == Customer.id).filter(
         Contact.deleted_at.is_(None),
         Customer.deleted_at.is_(None),
@@ -27,6 +28,16 @@ def get_contacts(db: Session, user_id: UUID, is_admin: bool = False, customer_id
         query = query.filter(Customer.owner_id == user_id)
     if customer_id:
         query = query.filter(Contact.customer_id == customer_id)
+    if search and search.strip():
+        term = f"%{search.strip()}%"
+        query = query.filter(or_(
+            Contact.first_name.ilike(term),
+            Contact.last_name.ilike(term),
+            Contact.title.ilike(term),
+            Contact.email.ilike(term),
+            Contact.phone.ilike(term),
+            Customer.name.ilike(term),
+        ))
     
     return query.order_by(Contact.created_at.desc(), Contact.id).offset(skip).limit(limit).all()
 

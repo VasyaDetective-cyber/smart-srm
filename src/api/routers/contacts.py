@@ -34,6 +34,7 @@ def create_contact(
 @router.get("/", response_model=List[ContactResponse])
 def read_contacts(
     customer_id: Optional[UUID] = Query(None),
+    search: Optional[str] = Query(None, max_length=100),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
@@ -45,6 +46,7 @@ def read_contacts(
         user_id=current_user.id,
         is_admin=is_admin,
         customer_id=customer_id,
+        search=search,
         skip=skip,
         limit=limit
     )

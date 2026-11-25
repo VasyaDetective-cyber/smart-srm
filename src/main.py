@@ -5,7 +5,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.core.config import settings
-from src.api.routers import customer, contacts, auth, users
+from src.api.routers import customer, contacts, deal, auth, users
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -20,6 +20,7 @@ app.add_middleware(
 )
 app.include_router(customer.router)
 app.include_router(contacts.router)
+app.include_router(deal.router)
 app.include_router(auth.router)
 app.include_router(users.router)
 

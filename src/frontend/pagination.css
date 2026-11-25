@@ -1,4 +1,5 @@
 .pagination{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-top:1px solid #304582;color:#95a9d9;font-size:12px}
 .pagination>div{display:flex;gap:8px}
 .pagination .ghost-btn{padding:8px 11px}
+.pagination .ghost-btn:disabled,.pagination .ghost-btn:disabled:hover{opacity:1;cursor:not-allowed;transform:none;box-shadow:none;background:#1e2d5d;border-color:#3b528e;color:#91a3cb}
 @media(max-width:560px){.pagination{align-items:stretch;flex-direction:column;gap:10px}.pagination>div{width:100%}.pagination .ghost-btn{flex:1}}
